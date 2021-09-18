@@ -2,13 +2,27 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-class Transaction:
-    pass
+@dataclass
+class BankTransaction:
+    date: str
+    amount: float
+    merchant: str
+
+    def __post_init__(self):
+        try:
+            self.amount = float(self.amount.replace(',', ''))
+        except ValueError:
+            raise ValueError("Unexpected Format")
 
 
-class BankTransaction(Transactions):
-    pass
+@dataclass
+class BrokerageTransaction:
+    date: str
+    symbol: str
+    cost: float
 
-
-class BrokerageTransaction(Transactions):
-    pass
+    def __post_init__(self):
+        try:
+            self.amount = float(self.amount.replace(',', ''))
+        except ValueError:
+            raise ValueError("Unexpected Format")
