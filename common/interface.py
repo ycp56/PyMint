@@ -2,7 +2,7 @@ import csv
 
 from dataclasses import dataclass
 from pathlib import Path, PosixPath
-from typing import Optional
+from typing import Optional, List
 
 
 class FileInterface:
@@ -22,7 +22,7 @@ class FileInterface:
 
 
 class CsvInterface(FileInterface):
-    def parse(self):
+    def parse(self) -> List[dict]:
         file_list = sorted(Path(self.file_dir).glob(self.file_pattern))
         return [
             {
@@ -31,7 +31,7 @@ class CsvInterface(FileInterface):
             } for file in file_list
         ]
 
-    def _parse(self, file_path: PosixPath):
+    def _parse(self, file_path: PosixPath) -> List[dict]:
         transactions = []
         with file_path.open('r') as f:
             for row in csv.DictReader(f):
