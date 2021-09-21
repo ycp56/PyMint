@@ -5,8 +5,8 @@ from typing import Optional
 @dataclass
 class BankTransaction:
     date: str
-    amount: float
     merchant: str
+    amount: float
 
     def __post_init__(self):
         try:
