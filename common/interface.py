@@ -1,6 +1,7 @@
 import csv
 
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path, PosixPath
 from typing import Optional, List
 
@@ -12,10 +13,12 @@ class FileInterface:
                  file_dir: str,
                  file_pattern: str,
                  column_map: dict,
+                 datetime_format: str=None
                  ) -> None:
         self.file_dir = file_dir
         self.file_pattern = file_pattern
         self.column_map = column_map
+        self.datetime_format = datetime_format
 
     def parse(self):
         raise NotImplementedError
@@ -37,11 +40,18 @@ class CsvInterface(FileInterface):
             for row in csv.DictReader(f):
                 transactions.append(
                     {
-                        key: row[value]
-                        for key, value in self.column_map.items()
+                        normalized_col: self._format(normalized_col, row[value])
+                        for normalized_col, value in self.column_map.items()
                     }
                 )
         return transactions
+
+    def _format(self, normalized_column, value):
+        if (normalized_column == 'date') and (self.datetime_format != None):
+            return datetime.strptime(value, self.datetime_format)
+        else:
+            return value
+        
 
 
 class PdfInterface(FileInterface):
