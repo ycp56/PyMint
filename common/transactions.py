@@ -13,6 +13,13 @@ class BankTransaction:
             self.amount = float(self.amount.replace(',', ''))
         except ValueError:
             raise ValueError("Unexpected Format")
+    
+    def to_dict(self):
+        return {
+            "date": self.date,
+            "merchant": self.merchant,
+            "amount": self.amount,
+        }
 
 
 @dataclass
@@ -26,3 +33,10 @@ class BrokerageTransaction:
             self.amount = float(self.amount.replace(',', ''))
         except ValueError:
             raise ValueError("Unexpected Format")
+
+    def to_dict(self):
+        return {
+            "date": self.date,
+            "symbol": self.merchant,
+            "cost": self.amount,
+        }

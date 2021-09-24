@@ -1,4 +1,4 @@
-import sqlite3
+import pandas as pd
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
@@ -25,11 +25,6 @@ class BaseAccount:
             for txn in txn_per_file['transactions']:
                 yield txn
 
-    def _init_db(self) -> None:
-        raise NotImplementedError
-
-    def _save(self) -> None:
-        raise NotImplementedError
 
     def _clean(self) -> None:
         with sqlite3.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES) as con:
@@ -37,15 +32,17 @@ class BaseAccount:
             cur.execute(f""" DROP TABLE IF EXISTS {self.institution}""")
             con.commit()
 
+
+    def to_dataframe(self) -> pd.DataFrame:
+        return pd.DataFrame.from_records(
+            txn.to_dict() for txn in self.transactions
+        )
+
     def get_transactions(self, start_date=datetime(1990, 1, 1), end_date=datetime.today()):
-        with sqlite3.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES) as con:
-            cur = con.cursor()
-            cur.execute(f""" 
-                SELECT *
-                FROM {self.institution}
-                WHERE (date >= {start_date}) AND (date <= {end_date})
-                ORDER BY date
-            """)
+        return [
+            txn for txn in self.transactions 
+            if (txn.date>=start_date) and (txn.date<=end_date)
+            ]
 
     def get_income(self, start_date, end_date, frequency='month'):
         raise NotImplementedError
@@ -64,27 +61,6 @@ class BankAccount(BaseAccount):
                     txn['amount']
                 )
             )
-
-    def _init_db(self) -> None:
-        with sqlite3.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES) as con:
-            cur = con.cursor()
-            cur.execute(f""" CREATE TABLE IF NOT EXISTS {self.institution}(
-                date TIMESTAMP,
-                merchant TEXT,
-                amount REAL);
-            """)
-            con.commit()
-
-    def _save(self) -> None:
-        with sqlite3.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES) as con:
-            cur = con.cursor()
-            for txn in self.transactions:
-                cur.execute(f"""
-                INSERT INTO {self.institution} VALUES(?, ?, ?)
-                """,
-                            (txn.date, txn.merchant, txn.amount))
-            con.commit()
-
 
 class BrokerageAccount(BaseAccount):
     def fetch(self):
