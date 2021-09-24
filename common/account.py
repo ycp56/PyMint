@@ -1,5 +1,6 @@
 import sqlite3
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List, Optional
 
 from .transactions import BankTransaction, BrokerageTransaction
@@ -9,9 +10,10 @@ from .interface import CsvInterface
 class BaseAccount:
     """ individual account for accounts"""
 
-    def __init__(self, interface: CsvInterface, institution: str) -> None:
+    def __init__(self, interface: CsvInterface, institution: str, database_file: str) -> None:
         self.interface = interface
         self.institution = institution
+        self.database = database_file
         self.transactions = []
 
     def get_balance(self):
@@ -23,10 +25,32 @@ class BaseAccount:
             for txn in txn_per_file['transactions']:
                 yield txn
 
-    def _init_db(self, db_file) -> None:
+    def _init_db(self) -> None:
         raise NotImplementedError
 
-    def _save(self, db_file) -> None:
+    def _save(self) -> None:
+        raise NotImplementedError
+
+    def _clean(self) -> None:
+        with sqlite3.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES) as con:
+            cur = con.cursor()
+            cur.execute(f""" DROP TABLE IF EXISTS {self.institution}""")
+            con.commit()
+
+    def get_transactions(self, start_date=datetime(1990, 1, 1), end_date=datetime.today()):
+        with sqlite3.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES) as con:
+            cur = con.cursor()
+            cur.execute(f""" 
+                SELECT *
+                FROM {self.institution}
+                WHERE (date >= {start_date}) AND (date <= {end_date})
+                ORDER BY date
+            """)
+
+    def get_income(self, start_date, end_date, frequency='month'):
+        raise NotImplementedError
+
+    def get_spending(self, start_date, end_date, frequency='month'):
         raise NotImplementedError
 
 
@@ -41,18 +65,18 @@ class BankAccount(BaseAccount):
                 )
             )
 
-    def _init_db(self, db_file) -> None:
-        with sqlite3.connect(db_file) as con:
+    def _init_db(self) -> None:
+        with sqlite3.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES) as con:
             cur = con.cursor()
             cur.execute(f""" CREATE TABLE IF NOT EXISTS {self.institution}(
-                date TEXT,
+                date TIMESTAMP,
                 merchant TEXT,
                 amount REAL);
             """)
             con.commit()
 
-    def _save(self, db_file) -> None:
-        with sqlite3.connect(db_file) as con:
+    def _save(self) -> None:
+        with sqlite3.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES) as con:
             cur = con.cursor()
             for txn in self.transactions:
                 cur.execute(f"""
@@ -73,8 +97,8 @@ class BrokerageAccount(BaseAccount):
                 )
             )
 
-    def _init_db(self, db_file) -> None:
-        with sqlite3.connect(db_file) as con:
+    def _init_db(self) -> None:
+        with sqlite3.connect(self.database) as con:
             cur = con.cursor()
             cur.execute(f""" CREATE TABLE IF NOT EXISTS {self.institution}(
                 date TEXT,
@@ -83,8 +107,8 @@ class BrokerageAccount(BaseAccount):
             """)
             con.commit()
 
-    def _save(self, db_file) -> None:
-        with sqlite3.connect(db_file) as con:
+    def _save(self) -> None:
+        with sqlite3.connect(self.database) as con:
             cur = con.cursor()
             for txn in self.transactions:
                 cur.execute(f"""
