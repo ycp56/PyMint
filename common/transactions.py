@@ -26,17 +26,19 @@ class BankTransaction:
 class BrokerageTransaction:
     date: str
     symbol: str
-    cost: float
+    quantity: str
+    value: float
 
     def __post_init__(self):
         try:
-            self.amount = float(self.amount.replace(',', ''))
+            self.value = float(self.value.replace(',', '').replace('$',''))
         except ValueError:
             raise ValueError("Unexpected Format")
 
     def to_dict(self):
         return {
             "date": self.date,
-            "symbol": self.merchant,
-            "cost": self.amount,
+            "symbol": self.symbol,
+            "quantity": self.quantity,
+            "value": self.value,
         }

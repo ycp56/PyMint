@@ -10,20 +10,20 @@ from .interface import CsvInterface
 class BaseAccount:
     """ individual account for accounts"""
 
-    def __init__(self, interface: CsvInterface, institution: str, database_file: str) -> None:
+    def __init__(self, interface: CsvInterface, institution: str ) -> None:
         self.interface = interface
         self.institution = institution
-        self.database = database_file
         self.transactions = []
+        self.positions = []
 
     def get_balance(self):
         raise NotImplementedError
 
-    def _fetch(self) -> List[dict]:
+    def _fetch(self):
         txn_lists = self.interface.parse()
         for txn_per_file in txn_lists:
             for txn in txn_per_file['transactions']:
-                yield txn
+                yield txn_per_file['file_path'], txn_per_file['file_date'], txn
 
     def to_dataframe(self) -> pd.DataFrame:
         return pd.DataFrame.from_records(
@@ -38,44 +38,39 @@ class BaseAccount:
 
 
 class BankAccount(BaseAccount):
-    def fetch(self):
-        for txn in self._fetch():
-            self.transactions.append(
-                BankTransaction(
-                    txn['date'],
-                    txn['merchant'],
-                    txn['amount']
+    def fetch(self, ignore_error=True):
+        for file_name, file_date, txn in self._fetch():
+            try:
+                self.transactions.append(
+                    BankTransaction(
+                        txn['date'],
+                        txn['merchant'],
+                        txn['amount']
+                    )
                 )
-            )
+            except:
+                if ignore_error:
+                    pass
+                else:
+                    raise ValueError
 
 
 class BrokerageAccount(BaseAccount):
-    def fetch(self):
-        for txn in self._fetch():
-            self.transactions.append(
-                (
-                    txn['date'],
-                    txn['symbol'],
-                    txn['cost']
+    def fetch(self, ignore_error=True):
+        for file_path, file_date, txn in self._fetch():
+            try:
+                self.transactions.append(
+                    (
+                        BrokerageTransaction(
+                            txn.get('date', file_date),
+                            txn['symbol'],
+                            txn['quantity'],
+                            txn['cost']
+                        )
+                    )
                 )
-            )
-
-    def _init_db(self) -> None:
-        with sqlite3.connect(self.database) as con:
-            cur = con.cursor()
-            cur.execute(f""" CREATE TABLE IF NOT EXISTS {self.institution}(
-                date TEXT,
-                merchant TEXT,
-                cost REAL);
-            """)
-            con.commit()
-
-    def _save(self) -> None:
-        with sqlite3.connect(self.database) as con:
-            cur = con.cursor()
-            for txn in self.transactions:
-                cur.execute(f"""
-                INSERT INTO {self.institution} VALUES(?, ?, ?)
-                """,
-                            (txn.date, txn.symbol, txn.cost))
-            con.commit()
+            except:
+                if ignore_error:
+                    pass
+                else:
+                    raise ValueError

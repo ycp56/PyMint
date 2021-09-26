@@ -1,4 +1,5 @@
 import csv
+import re
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -13,12 +14,14 @@ class FileInterface:
                  file_dir: str,
                  file_pattern: str,
                  column_map: dict,
-                 datetime_format: str=None
+                 datetime_format: str=None,
+                 filename_date_regex: str=None
                  ) -> None:
         self.file_dir = file_dir
         self.file_pattern = file_pattern
         self.column_map = column_map
         self.datetime_format = datetime_format
+        self.filename_date_regex = filename_date_regex
 
     def parse(self):
         raise NotImplementedError
@@ -26,10 +29,11 @@ class FileInterface:
 
 class CsvInterface(FileInterface):
     def parse(self) -> List[dict]:
-        file_list = sorted(Path(self.file_dir).glob(self.file_pattern))
+        file_list = sorted(Path(self.file_dir).glob(self.file_pattern), reverse=True)
         return [
             {
                 "file_path": file,
+                "file_date": self._get_file_date(file),
                 "transactions": self._parse(file)
             } for file in file_list
         ]
@@ -52,6 +56,11 @@ class CsvInterface(FileInterface):
         else:
             return value
         
+    def _get_file_date(self, file_path) -> str:
+        if self.filename_date_regex is not None:
+            return re.findall(self.filename_date_regex, str(file_path))[0]
+        else:
+            return ""
 
 
 class PdfInterface(FileInterface):
