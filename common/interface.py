@@ -38,16 +38,22 @@ class CsvInterface(FileInterface):
             } for file in file_list
         ]
 
-    def _parse(self, file_path: PosixPath) -> List[dict]:
+    def _parse(self, file_path: PosixPath, ignore_error=True) -> List[dict]:
         transactions = []
         with file_path.open('r') as f:
             for row in csv.DictReader(f):
-                transactions.append(
-                    {
-                        normalized_col: self._format(normalized_col, row[value])
-                        for normalized_col, value in self.column_map.items()
-                    }
-                )
+                try:
+                    transactions.append(
+                        {
+                            normalized_col: self._format(normalized_col, row[value])
+                            for normalized_col, value in self.column_map.items()
+                        }
+                    )
+                except:
+                    if ignore_error:
+                        pass
+                    else:
+                        return ValueError
         return transactions
 
     def _format(self, normalized_column, value):
