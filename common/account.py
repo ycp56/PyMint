@@ -1,7 +1,9 @@
 import pandas as pd
+import numpy as np
+
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from .transactions import BankTransaction, BrokerageTransaction
 from .interface import CsvInterface
@@ -10,14 +12,15 @@ from .interface import CsvInterface
 class BaseAccount:
     """ individual account for accounts"""
 
-    def __init__(self, interface: CsvInterface, institution: str ) -> None:
+    def __init__(self, interface: CsvInterface, institution: str) -> None:
         self.interface = interface
         self.institution = institution
         self.transactions = []
         self.positions = []
+        self._balance_sheet = None
 
-    def get_balance(self):
-        raise NotImplementedError
+    def _account_type(self) -> str:
+        return self.__class__.__name__
 
     def _fetch(self):
         txn_lists = self.interface.parse()
@@ -30,11 +33,23 @@ class BaseAccount:
             txn.to_dict() for txn in self.transactions
         )
 
-    def get_transactions(self, start_date=datetime(1990, 1, 1), end_date=datetime.today()):
-        return [
+    def get_transactions(self,
+                         start_date=datetime(1990, 1, 1),
+                         end_date=datetime.today(),
+                         format='pandas' 
+                         ) -> List[Union[BankTransaction, BrokerageTransaction]]:
+        
+        txns =  [
             txn for txn in self.transactions
             if (txn.date >= start_date) and (txn.date <= end_date)
         ]
+
+        if format == 'pandas':
+            return pd.DataFrame.from_records(
+                txn.to_dict() for txn in txns 
+                )
+        else:
+            return txns
 
 
 class BankAccount(BaseAccount):
@@ -53,6 +68,20 @@ class BankAccount(BaseAccount):
                     pass
                 else:
                     raise ValueError
+
+    def get_balance(self, type="all", start_date="1990-01-01", end_date="2099-01-01"):
+        if self._balance_sheet is None:
+            self._balance_sheet = self.to_dataframe()
+
+        if type == 'all':
+            balance = self._balance_sheet.query("(date>=@start_date) & (date<=@end_date)")
+        elif type == 'income':
+            balance = self._balance_sheet.query("(date>=@start_date) & (date<=@end_date) & (amount>0)")
+        elif type == 'spending':
+            balance = self._balance_sheet.query("(date>=@start_date) & (date<=@end_date) & (amount<0)")
+        else:
+            raise ValueError('Unknown type!')
+        return np.around(balance['amount'].sum(), 2)
 
 
 class BrokerageAccount(BaseAccount):
