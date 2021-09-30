@@ -103,3 +103,10 @@ class BrokerageAccount(BaseAccount):
                     pass
                 else:
                     raise ValueError
+
+    def get_balance(self, start_date="1990-01-01", end_date="2099-01-01"):
+        if self._balance_sheet is None:
+            self._balance_sheet = self.to_dataframe()
+        balance = self._balance_sheet.query("(date>=@start_date) & (date<=@end_date)")
+        return np.around(balance['cost'].sum(), 2)
+
