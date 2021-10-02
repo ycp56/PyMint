@@ -33,7 +33,7 @@ class BaseAccount:
             txn.to_dict() for txn in self.transactions
         )
 
-    def get_transactions(self,
+    def _get_transactions(self,
                          start_date=datetime(1990, 1, 1),
                          end_date=datetime.today(),
                          format='pandas' 
@@ -69,7 +69,7 @@ class BankAccount(BaseAccount):
                 else:
                     raise ValueError
 
-    def get_balance(self, type="all", start_date="1990-01-01", end_date="2099-01-01"):
+    def get_transactions(self, type="all", start_date="1990-01-01", end_date="2099-01-01"):
         if self._balance_sheet is None:
             self._balance_sheet = self.to_dataframe()
 
@@ -81,7 +81,20 @@ class BankAccount(BaseAccount):
             balance = self._balance_sheet.query("(date>=@start_date) & (date<=@end_date) & (amount<0)")
         else:
             raise ValueError('Unknown type!')
-        return np.around(balance['amount'].sum(), 2)
+        return balance
+
+    def get_spending(self, freq='M', start_date="1990-01-01", end_date="2099-01-01"):
+        balance = self.get_transactions(type='spending', start_date=start_date, end_date=end_date)
+        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum()
+
+    def get_income(self, freq='M', start_date="1990-01-01", end_date="2099-01-01"):
+        balance = self.get_transactions(type='income', start_date=start_date, end_date=end_date)
+        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum()
+
+    def get_cashflow(self, freq='M', start_date="1990-01-01", end_date="2099-01-01"):
+        balance = self.get_transactions(type='all', start_date=start_date, end_date=end_date)
+        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum()
+
 
 
 class BrokerageAccount(BaseAccount):
