@@ -85,15 +85,15 @@ class BankAccount(BaseAccount):
 
     def get_spending(self, freq='M', start_date="1990-01-01", end_date="2099-01-01"):
         balance = self.get_transactions(type='spending', start_date=start_date, end_date=end_date)
-        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum()
+        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum().rename('spending')
 
     def get_income(self, freq='M', start_date="1990-01-01", end_date="2099-01-01"):
         balance = self.get_transactions(type='income', start_date=start_date, end_date=end_date)
-        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum()
+        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum().rename('income')
 
     def get_cashflow(self, freq='M', start_date="1990-01-01", end_date="2099-01-01"):
         balance = self.get_transactions(type='all', start_date=start_date, end_date=end_date)
-        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum()
+        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum().rename('cashflow')
 
 
 
@@ -117,7 +117,7 @@ class BrokerageAccount(BaseAccount):
                 else:
                     raise ValueError
 
-    def get_balance(self, start_date="1990-01-01", end_date="2099-01-01"):
+    def get_cost(self, start_date="1990-01-01", end_date="2099-01-01"):
         if self._balance_sheet is None:
             self._balance_sheet = self.to_dataframe()
         balance = self._balance_sheet.query("(date>=@start_date) & (date<=@end_date)")

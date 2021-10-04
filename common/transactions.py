@@ -27,11 +27,11 @@ class BrokerageTransaction:
     date: str
     symbol: str
     quantity: str
-    value: float
+    cost: float
 
     def __post_init__(self):
         try:
-            self.value = float(self.value.replace(',', '').replace('$',''))
+            self.cost = float(self.cost.replace(',', '').replace('$',''))
         except ValueError:
             raise ValueError("Unexpected Format")
 
@@ -40,5 +40,5 @@ class BrokerageTransaction:
             "date": self.date,
             "symbol": self.symbol,
             "quantity": self.quantity,
-            "value": self.value,
+            "cost": self.cost,
         }

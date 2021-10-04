@@ -7,7 +7,7 @@ from datetime import date, timedelta
 # Process bank data
 
 
-def get_bank_account(config):
+def _get_bank_account(config):
     csv_interface = CsvInterface(
         config['file_dir'], config['file_pattern'], config['column_map'], config['datetime_format'], config['filename_date_regex'])
     account = BankAccount(interface=csv_interface,
@@ -15,6 +15,8 @@ def get_bank_account(config):
     account.fetch()
     return account
 
+def get_bank_account(bank_configs):
+    return [_get_bank_account(c) for c in bank_configs]
 
 def bank_summary(bank_accounts: List[BankAccount],
                  start_date=date.today()-timedelta(days=364),
@@ -32,13 +34,20 @@ def bank_summary(bank_accounts: List[BankAccount],
          for acct in bank_accounts), axis=1
         ).sum(axis=1).rename('cashflow')
 
-    return pd.concat((spending, income, cashflow), axis=1)
+    # plotly dash doesn't support PeriodIndex type - convert it to datetime
+    bk_sum_res = pd.concat((spending, income, cashflow), axis=1)
+    bk_sum_res.index = bk_sum_res.index.strftime("%Y-%m")
+    bk_sum_res = bk_sum_res.reset_index()
+    return bk_sum_res
 
 
-def get_brokerage_account(config):
+def _get_brokerage_account(config):
     csv_interface = CsvInterface(
         config['file_dir'], config['file_pattern'], config['column_map'], config['datetime_format'], config['filename_date_regex'])
     account = BrokerageAccount(interface=csv_interface,
                                institution=config['institution'])
     account.fetch()
     return account
+
+def get_brokerage_account(brokerage_configs):
+    return [_get_brokerage_account(c) for c in brokerage_configs]
