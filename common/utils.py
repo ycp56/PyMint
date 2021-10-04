@@ -15,8 +15,10 @@ def _get_bank_account(config):
     account.fetch()
     return account
 
+
 def get_bank_account(bank_configs):
     return [_get_bank_account(c) for c in bank_configs]
+
 
 def bank_summary(bank_accounts: List[BankAccount],
                  start_date=date.today()-timedelta(days=364),
@@ -24,15 +26,15 @@ def bank_summary(bank_accounts: List[BankAccount],
     spending = pd.concat(
         (acct.get_spending(start_date=start_date, end_date=end_date)
          for acct in bank_accounts), axis=1
-        ).sum(axis=1).rename('spending')
+    ).sum(axis=1).rename('spending')
     income = pd.concat(
         (acct.get_income(start_date=start_date, end_date=end_date)
          for acct in bank_accounts), axis=1
-        ).sum(axis=1).rename('income')
+    ).sum(axis=1).rename('income')
     cashflow = pd.concat(
         (acct.get_cashflow(start_date=start_date, end_date=end_date)
          for acct in bank_accounts), axis=1
-        ).sum(axis=1).rename('cashflow')
+    ).sum(axis=1).rename('cashflow')
 
     # plotly dash doesn't support PeriodIndex type - convert it to datetime
     bk_sum_res = pd.concat((spending, income, cashflow), axis=1)
@@ -49,5 +51,18 @@ def _get_brokerage_account(config):
     account.fetch()
     return account
 
+
 def get_brokerage_account(brokerage_configs):
     return [_get_brokerage_account(c) for c in brokerage_configs]
+
+
+def brokerage_summary(brokerage_accounts: List[BrokerageAccount]):
+    cost = pd.concat(acct.to_dataframe()[
+                     ['symbol', 'quantity', 'cost']
+                     ] for acct in brokerage_accounts).astype(
+                         {
+                             'quantity': 'float'
+                         }
+                     )
+    cost = cost.groupby(by='symbol').sum().reset_index()
+    return cost
