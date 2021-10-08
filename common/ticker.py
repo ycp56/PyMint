@@ -1,17 +1,17 @@
 import requests
 
 
-def _parse_yahoo_data(quote_data, type='last'):
+def _parse_yahoo_data(yahoo_json, type='last'):
     if type == 'last':
-        yahoo_data = quote_data.get('quoteResponse', {}).get('result', [{}])
         try:
+            yahoo_data = yahoo_json.get('quoteResponse', {}).get('result', [{}])[0]
             symbol, prevClose = yahoo_data['symbol'], yahoo_data['regularMarketPreviousClose']
             return symbol, None, prevClose
         except:
             return None, None, None
     elif type == 'history':
         try:
-            yahoo_data = quote_data.get('chart', {}).get('result', [{}])[0]
+            yahoo_data = yahoo_json.get('chart', {}).get('result', [{}])[0]
             symbol = yahoo_data['meta']['symbol']
             timestamp = yahoo_data['timestamp']
             adjclose = yahoo_data['indicators']['adjclose'][0]['adjclose']

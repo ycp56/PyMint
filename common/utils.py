@@ -1,6 +1,7 @@
 import pandas as pd
 from .account import BankAccount, BrokerageAccount
 from .interface import CsvInterface
+from .ticker import get_prev_close, get_price_history
 from typing import List
 from datetime import date, timedelta
 
@@ -56,7 +57,25 @@ def get_brokerage_account(brokerage_configs):
     return [_get_brokerage_account(c) for c in brokerage_configs]
 
 
-def brokerage_summary(brokerage_accounts: List[BrokerageAccount]):
+def add_prev_close(df_brokerage_summary):
+    all_tickers = df_brokerage_summary['symbol']
+    ticker_data = [get_prev_close(ticker) for ticker in all_tickers]
+    prev_close = pd.DataFrame.from_records(
+        {'symbol':symbol, 'prev_close':prev_close} 
+        for symbol, _, prev_close in ticker_data if symbol is not None
+        )
+    df_brokerage_summary = df_brokerage_summary.merge(
+        prev_close, on='symbol', how='left'
+        )
+    df_brokerage_summary['value'] = df_brokerage_summary['prev_close']*df_brokerage_summary['quantity']
+    df_brokerage_summary['PnL'] = df_brokerage_summary['value'] - df_brokerage_summary['cost']
+    df_brokerage_summary['return'] = df_brokerage_summary['PnL'] / df_brokerage_summary['cost']
+
+    return df_brokerage_summary
+
+    
+
+def brokerage_summary(brokerage_accounts: List[BrokerageAccount], enrich=False):
     cost = pd.concat(acct.to_dataframe()[
                      ['symbol', 'quantity', 'cost']
                      ] for acct in brokerage_accounts).astype(
@@ -65,4 +84,5 @@ def brokerage_summary(brokerage_accounts: List[BrokerageAccount]):
                          }
                      )
     cost = cost.groupby(by='symbol').sum().reset_index()
-    return cost
+    cost['average_price'] = cost['cost'] / cost['quantity']
+    return add_prev_close(cost)
