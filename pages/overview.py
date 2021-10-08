@@ -7,16 +7,10 @@ from utils import Header, make_dash_table
 import pandas as pd
 import pathlib
 
-# get relative data folder
-PATH = pathlib.Path(__file__).parent
-DATA_PATH = PATH.joinpath("../data").resolve()
-
-
-
 
 def create_layout(data, app):
     # Page layouts
-    bank_data = data['bank_data']['summary'] 
+    bank_data = data['bank_data']['summary']
     brokerage_data = data['brokerage_data']['summary']
     return html.Div(
         [
@@ -38,8 +32,9 @@ def create_layout(data, app):
                                         figure={
                                             "data": [
                                                 go.Bar(
-                                                    x = bank_data['date'],
-                                                    y = (-1.0)*bank_data['spending'],
+                                                    x=bank_data['date'],
+                                                    y=(-1.0) * \
+                                                    bank_data['spending'],
                                                     marker={
                                                         "color": "#97151c",
                                                         "line": {
@@ -50,8 +45,8 @@ def create_layout(data, app):
                                                     name="Spending",
                                                 ),
                                                 go.Bar(
-                                                    x = bank_data['date'],
-                                                    y = bank_data['income'],
+                                                    x=bank_data['date'],
+                                                    y=bank_data['income'],
                                                     marker={
                                                         "color": "#dddddd",
                                                         "line": {
@@ -62,8 +57,8 @@ def create_layout(data, app):
                                                     name="Income",
                                                 ),
                                                 go.Bar(
-                                                    x = bank_data['date'],
-                                                    y = bank_data['cashflow'],
+                                                    x=bank_data['date'],
+                                                    y=bank_data['cashflow'],
                                                     marker={
                                                         "color": "#856879",
                                                         "line": {
@@ -77,7 +72,8 @@ def create_layout(data, app):
                                             "layout": go.Layout(
                                                 autosize=False,
                                                 bargap=0.35,
-                                                font={"family": "Raleway", "size": 10},
+                                                font={
+                                                    "family": "Raleway", "size": 10},
                                                 height=200,
                                                 width=700,
                                                 hovermode="closest",
@@ -131,7 +127,8 @@ def create_layout(data, app):
                                         "Investment Price & Performance",
                                         className="subtitle padded",
                                     ),
-                                    html.Table(make_dash_table(brokerage_data)),
+                                    html.Table(
+                                        make_dash_table(brokerage_data)),
                                 ],
                                 className=" columns",
                             ),
