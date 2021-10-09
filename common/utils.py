@@ -5,7 +5,9 @@ from .ticker import get_prev_close, get_price_history
 from typing import List
 from datetime import date, timedelta
 
-# Process bank data
+# -----------------------------------------------------------------------------
+#            Utility functions to process bank data
+# -----------------------------------------------------------------------------
 
 
 def _get_bank_account(config):
@@ -44,6 +46,10 @@ def bank_summary(bank_accounts: List[BankAccount],
     return bk_sum_res
 
 
+# -----------------------------------------------------------------------------
+#            Utility functions to process brokerage data
+# -----------------------------------------------------------------------------
+
 def _get_brokerage_account(config):
     csv_interface = CsvInterface(
         config['file_dir'], config['file_pattern'], config['column_map'], config['datetime_format'], config['filename_date_regex'])
@@ -78,7 +84,7 @@ def add_prev_close(df_brokerage_summary, cash_symbol=[]):
     return df_brokerage_summary
 
 
-def format(df, formatters):
+def _format(df, formatters):
     for col, func in formatters.items():
         if col in df:
             df[col] = df[col].apply(func)
@@ -99,7 +105,7 @@ def brokerage_summary(brokerage_accounts: List[BrokerageAccount],
     cost['average_price'] = cost['cost'] / cost['quantity']
     if enrich:
         cost = add_prev_close(cost, cash_symbol=cash_symbol)
-        return format(
+        return _format(
             cost,
             formatters={
                 'cost': '{:.2f}'.format,
@@ -109,7 +115,7 @@ def brokerage_summary(brokerage_accounts: List[BrokerageAccount],
                 'PnL': '{:.2f}'.format,
                 'return': '{:.2%}'.format,
             }).rename(
-                columns = {
+                columns={
                     'symbol': 'Symbol',
                     'quantity': "Quantity",
                     'cost': 'Cost',
@@ -119,6 +125,35 @@ def brokerage_summary(brokerage_accounts: List[BrokerageAccount],
                     'PnL': 'PnL',
                     'return': 'Return'
                 }
-            )
+        )
     else:
         return cost
+
+
+def portfolio_trend(brokerage_accounts: List[BrokerageAccount],
+                    cash_symbol=['QACDS'],
+                    enrich=True):
+    portfolio = pd.concat(acct.to_dataframe()[
+        ['symbol', 'quantity']
+    ] for acct in brokerage_accounts).astype(
+        {
+            'quantity': 'float'
+        }
+    )
+
+    portfolio = portfolio.groupby(by='symbol').sum().reset_index()
+    price_history = [get_price_history(ticker)
+                     for ticker in portfolio['symbol']]
+    price_history = pd.concat(
+        pd.DataFrame(
+            {
+            'date': pd.to_datetime(timestamp, unit='s').date,
+            'symbol': symbol,
+            'price': price
+            }
+            ) for symbol, timestamp, price in price_history if symbol is not None
+        )
+
+    price_history = price_history.merge(portfolio, on='symbol', how='left')
+    price_history['value'] = (price_history['price']*price_history['quantity']).round(2)
+    return price_history[['date','value']].groupby(by='date').sum()
