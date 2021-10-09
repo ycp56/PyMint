@@ -35,7 +35,7 @@ def get_prev_close(ticker):
 
 
 def get_price_history(ticker, interval='1d', range='6mo'):
-    url = "https://query1.finance.yahoo.com/v8/finance/chart/AAPL"
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
     r = requests.get(
         url,
         params={
