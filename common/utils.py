@@ -147,13 +147,14 @@ def portfolio_trend(brokerage_accounts: List[BrokerageAccount],
     price_history = pd.concat(
         pd.DataFrame(
             {
-            'date': pd.to_datetime(timestamp, unit='s').date,
-            'symbol': symbol,
-            'price': price
+                'date': pd.to_datetime(timestamp, unit='s').date,
+                'symbol': symbol,
+                'price': price
             }
-            ) for symbol, timestamp, price in price_history if symbol is not None
-        )
+        ) for symbol, timestamp, price in price_history if symbol is not None
+    )
 
     price_history = price_history.merge(portfolio, on='symbol', how='left')
-    price_history['value'] = (price_history['price']*price_history['quantity']).round(2)
-    return price_history[['date','value']].groupby(by='date').sum()
+    price_history['value'] = (price_history['price']
+                              * price_history['quantity']).round(2)
+    return price_history[['date', 'value']].groupby(by='date').sum().reset_index()

@@ -12,13 +12,14 @@ def create_layout(data, app):
     # Page layouts
     bank_data = data['bank_data']['summary']
     brokerage_data = data['brokerage_data']['summary']
+    portfolio_trend = data['brokerage_data']['trend']
     return html.Div(
         [
             html.Div([Header(app)]),
             # page 1
             html.Div(
                 [
-                    # Row 4: Bank Trend
+                    # Row 1: Bank Trend
                     html.Div(
                         [
                             html.Div(
@@ -118,7 +119,95 @@ def create_layout(data, app):
                         className="row",
                         style={"margin-bottom": "35px"},
                     ),
-                    # Row 5: Investment
+
+                    # Row 2: Portfolio Historical data
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.H6("Performance", className="subtitle padded"),
+                                    dcc.Graph(
+                                        id="graph-4",
+                                        figure={
+                                            "data": [
+                                                go.Scatter(
+                                                    x=portfolio_trend['date'],
+                                                    y=portfolio_trend['value'],
+                                                    line={"color": "#97151c"},
+                                                    mode="lines",
+                                                    name="Portfolio Value",
+                                                ),
+                                            ],
+                                            "layout": go.Layout(
+                                                autosize=True,
+                                                width=700,
+                                                height=200,
+                                                font={"family": "Raleway", "size": 10},
+                                                margin={
+                                                    "r": 30,
+                                                    "t": 30,
+                                                    "b": 30,
+                                                    "l": 30,
+                                                },
+                                                showlegend=True,
+                                                titlefont={
+                                                    "family": "Raleway",
+                                                    "size": 10,
+                                                },
+                                                xaxis={
+                                                    "autorange": True,
+                                                    "range": [
+                                                        "2007-12-31",
+                                                        "2018-03-06",
+                                                    ],
+                                                    "rangeselector": {
+                                                        "buttons": [
+                                                            {
+                                                                "count": 1,
+                                                                "label": "1M",
+                                                                "step": "month",
+                                                                "stepmode": "backward",
+                                                            },
+                                                            {
+                                                                "count": 3,
+                                                                "label": "3M",
+                                                                "step": "month",
+                                                                "stepmode": "backward",
+                                                            },
+                                                            {
+                                                                "count": 6,
+                                                                "label": "6M",
+                                                                "step": "month",
+                                                            },
+                                                            {
+                                                                "label": "All",
+                                                                "step": "all",
+                                                            },
+                                                        ]
+                                                    },
+                                                    "showline": True,
+                                                    "type": "date",
+                                                    "zeroline": False,
+                                                },
+                                                yaxis={
+                                                    "autorange": True,
+                                                    "showline": True,
+                                                    "type": "linear",
+                                                    "zeroline": False,
+                                                },
+                                            ),
+                                        },
+                                        config={"displayModeBar": False},
+                                    ),
+                                ],
+                                className="twelve columns",
+                            )
+                        ],
+                        className="row ",
+                    ),
+ 
+
+                    # Row 2: Investment table
                     html.Div(
                         [
                             html.Div(

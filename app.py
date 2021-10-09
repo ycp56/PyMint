@@ -5,7 +5,6 @@ from dash import html
 from dash.dependencies import Input, Output
 from pages import (
     overview,
-    pricePerformance,
 )
 
 
@@ -13,7 +12,8 @@ from common.utils import (
     get_brokerage_account, 
     get_bank_account, 
     bank_summary,
-    brokerage_summary
+    brokerage_summary,
+    portfolio_trend
 )
 
 from config import bank_config, brokerage_config
@@ -22,7 +22,8 @@ data = {
         'summary': bank_summary(get_bank_account(bank_config))
         },
     'brokerage_data': {
-        'summary': brokerage_summary(get_brokerage_account(brokerage_config)) 
+        'summary': brokerage_summary(get_brokerage_account(brokerage_config)),
+        'trend': portfolio_trend(get_brokerage_account(brokerage_config))
     }
     }
 
@@ -43,16 +44,7 @@ app.layout = html.Div(
 # Update page
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def display_page(pathname):
-    if pathname == "/dash-financial-report/price-performance":
-        return pricePerformance.create_layout(app)
-    elif pathname == "/dash-financial-report/full-view":
-        return (
-            overview.create_layout(data, app),
-            pricePerformance.create_layout(app),
-        )
-    else:
-
-        return overview.create_layout(data, app)
+    return overview.create_layout(data, app)
 
 
 if __name__ == "__main__":

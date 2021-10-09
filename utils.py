@@ -3,7 +3,7 @@ from dash import html
 
 
 def Header(app):
-    return html.Div([get_header(app), html.Br([]), get_menu()])
+    return html.Div([get_header(app), html.Br([])])
 
 
 def get_header(app):
@@ -13,7 +13,7 @@ def get_header(app):
                 [
                     html.A(
                         html.Button("Source Code", id="learn-more-button"),
-                        href="https://github.com/plotly/dash-sample-apps/tree/main/apps/dash-financial-report",
+                        href="https://github.com/ycp56/PyMint",
                     ),
                 ],
                 className="row",
@@ -24,17 +24,7 @@ def get_header(app):
                         [html.H5("Overview")],
                         className="seven columns main-title",
                     ),
-                    html.Div(
-                        [
-                            dcc.Link(
-                                "Full View",
-                                href="/dash-financial-report/full-view",
-                                className="full-view-link",
-                            )
-                        ],
-                        className="five columns",
-                    ),
-                ],
+               ],
                 className="twelve columns",
                 style={"padding-left": "0"},
             ),
@@ -52,11 +42,6 @@ def get_menu():
                 href="/dash-financial-report/overview",
                 className="tab first",
             ),
-            dcc.Link(
-                "Price Performance",
-                href="/dash-financial-report/price-performance",
-                className="tab",
-            )
         ],
         className="row all-tabs",
     )
