@@ -23,6 +23,28 @@ class BankTransaction:
 
 
 @dataclass
+class CardTransaction:
+    date: str
+    merchant: str
+    category: str
+    amount: float
+
+    def __post_init__(self):
+        try:
+            self.amount = float(self.amount.replace(',', ''))
+        except ValueError:
+            raise ValueError("Unexpected Format")
+   
+    def to_dict(self):
+        return {
+            "date": self.date,
+            "merchant": self.merchant,
+            "category": self.category,
+            "amount": self.amount,
+        }
+
+
+@dataclass
 class BrokerageTransaction:
     date: str
     symbol: str
