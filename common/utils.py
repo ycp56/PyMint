@@ -1,5 +1,5 @@
 import pandas as pd
-from .account import BankAccount, BrokerageAccount
+from .account import BankAccount, BrokerageAccount, CardAccount
 from .interface import CsvInterface
 from .ticker import get_prev_close, get_price_history
 from typing import List
@@ -44,6 +44,35 @@ def bank_summary(bank_accounts: List[BankAccount],
     bk_sum_res.index = bk_sum_res.index.strftime("%Y-%m")
     bk_sum_res = bk_sum_res.reset_index()
     return bk_sum_res
+
+
+# -----------------------------------------------------------------------------
+#            Utility functions to process card data
+# -----------------------------------------------------------------------------
+def _get_card_account(config):
+    csv_interface = CsvInterface(
+        config['file_dir'], config['file_pattern'], config['column_map'], config['datetime_format'], config['filename_date_regex'])
+    account = BankAccount(interface=csv_interface,
+                          institution=config['institution'])
+    account.fetch()
+    return account
+
+
+def get_card_account(card_configs):
+    return [_get_card_account(c) for c in card_configs]
+
+
+def card_summary(card_accounts: List[CardAccount],
+                 start_date=date.today()-timedelta(days=364),
+                 end_date=date.today()):
+    spending = pd.concat(
+        (acct.get_spending(start_date=start_date, end_date=end_date)
+         for acct in card_accounts), axis=1
+        ).sum(axis=1).rename('spending')
+
+    # plotly dash doesn't support PeriodIndex type - convert it to datetime
+    return spending 
+
 
 
 # -----------------------------------------------------------------------------

@@ -11,12 +11,14 @@ from pages import (
 from common.utils import (
     get_brokerage_account, 
     get_bank_account, 
+    get_card_account, 
     bank_summary,
     brokerage_summary,
+    card_summary,
     portfolio_trend
 )
 
-from config import bank_config, brokerage_config
+from config import bank_config, brokerage_config, card_config
 data = {
     'bank_data':{
         'summary': bank_summary(get_bank_account(bank_config))
@@ -24,7 +26,11 @@ data = {
     'brokerage_data': {
         'summary': brokerage_summary(get_brokerage_account(brokerage_config)),
         'trend': portfolio_trend(get_brokerage_account(brokerage_config))
-    }
+    },
+    'card_data':{
+        'summary': card_summary(get_card_account(card_config))
+        },
+
     }
 
 # -----------------------------------------------------------------------------

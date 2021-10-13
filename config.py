@@ -15,10 +15,28 @@ bank_config = [
     {
         "institution": "bank_2",
         "file_dir": "test/statements",
-        "file_pattern": "Chase2*csv",
+        "file_pattern": "Chase27*csv",
         "column_map": {
             "date": "Posting Date",
             "merchant": "Description",
+            "amount": "Amount",
+        },
+        "datetime_format": "%m/%d/%Y",
+        "filename_date_regex": r"\d{8}"
+    },
+]
+
+
+card_config = [
+    {
+        "institution": "card_1",
+        "file_dir": "test/statements",
+        "file_pattern": "Chase23*csv",
+        "column_map": {
+            "date": "Transaction Date",
+            "merchant": "Description",
+            "category": "Category",
+            "type": "Type",
             "amount": "Amount",
         },
         "datetime_format": "%m/%d/%Y",

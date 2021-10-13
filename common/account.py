@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional, Union
 
-from .transactions import BankTransaction, BrokerageTransaction
+from .transactions import BankTransaction, BrokerageTransaction, CardTransaction
 from .interface import CsvInterface
 
 
@@ -95,6 +95,36 @@ class BankAccount(BaseAccount):
         balance = self.get_transactions(type='all', start_date=start_date, end_date=end_date)
         return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum().rename('cashflow')
 
+
+
+class CardAccount(BaseAccount):
+    def fetch(self, ignore_error=True):
+        for file_name, file_date, txn in self._fetch():
+            try:
+                self.transactions.append(
+                    CardTransaction(
+                        txn['date'],
+                        txn['merchant'],
+                        txn['category'],
+                        txn['type'],
+                        txn['amount']
+                    )
+                )
+            except:
+                if ignore_error:
+                    pass
+                else:
+                    raise ValueError
+
+    def get_transactions(self, start_date="1990-01-01", end_date="2099-01-01", exclude_type='Payment'):
+        if self._balance_sheet is None:
+            self._balance_sheet = self.to_dataframe()
+        balance = self._balance_sheet.query(f"(date>=@start_date) & (date<=@end_date) & (type!='{exclude_type}')")
+        return balance
+
+    def get_spending(self, freq='M', start_date="1990-01-01", end_date="2099-01-01"):
+        balance = self.get_transactions(start_date=start_date, end_date=end_date)
+        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum().rename('spending')
 
 
 class BrokerageAccount(BaseAccount):
