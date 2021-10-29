@@ -3,7 +3,7 @@ from dash import html
 
 
 def Header(app):
-    return html.Div([get_header(app), html.Br([])])
+    return html.Div([get_header(app), html.Br([]), get_menu()])
 
 
 def get_header(app):
@@ -39,9 +39,14 @@ def get_menu():
         [
             dcc.Link(
                 "Overview",
-                href="/dash-financial-report/overview",
+                href="/financial-report/overview",
                 className="tab first",
             ),
+            dcc.Link(
+                "Credit Card",
+                href="/financial-report/credit-card",
+                className="tab first",
+            )
         ],
         className="row all-tabs",
     )

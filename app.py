@@ -5,6 +5,7 @@ from dash import html
 from dash.dependencies import Input, Output
 from pages import (
     overview,
+    creditcard
 )
 
 
@@ -50,7 +51,10 @@ app.layout = html.Div(
 # Update page
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def display_page(pathname):
-    return overview.create_layout(data, app)
+    if pathname == "/financial-report/credit-card":
+        return creditcard.create_layout(data, app) 
+    else:
+        return overview.create_layout(data, app)
 
 
 if __name__ == "__main__":
