@@ -27,6 +27,7 @@ class CardTransaction:
     date: str
     merchant: str
     category: str
+    type: str
     amount: float
 
     def __post_init__(self):
@@ -40,6 +41,7 @@ class CardTransaction:
             "date": self.date,
             "merchant": self.merchant,
             "category": self.category,
+            "type": self.type,
             "amount": self.amount,
         }
 

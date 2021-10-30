@@ -52,7 +52,7 @@ def bank_summary(bank_accounts: List[BankAccount],
 def _get_card_account(config):
     csv_interface = CsvInterface(
         config['file_dir'], config['file_pattern'], config['column_map'], config['datetime_format'], config['filename_date_regex'])
-    account = BankAccount(interface=csv_interface,
+    account = CardAccount(interface=csv_interface,
                           institution=config['institution'])
     account.fetch()
     return account
