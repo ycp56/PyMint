@@ -122,10 +122,13 @@ class CardAccount(BaseAccount):
         balance = self._balance_sheet.query(f"(date>=@start_date) & (date<=@end_date) & (type!='{exclude_type}')")
         return balance
 
-    def get_spending(self, freq='M', start_date="1990-01-01", end_date="2099-01-01"):
+    def get_spending(self, freq='M', start_date="1990-01-01", end_date="2099-01-01", by_category=True):
         balance = self.get_transactions(start_date=start_date, end_date=end_date)
-        return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum().rename('spending')
-
+        balance[freq] = balance['date'].dt.to_period(freq)
+        if by_category:
+            return balance.groupby(by=[freq, 'category'])['amount'].sum().rename('spending')
+        else:
+            return balance.groupby(by=freq)['amount'].sum().rename('spending')
 
 class BrokerageAccount(BaseAccount):
     def fetch(self, ignore_error=True):
