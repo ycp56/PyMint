@@ -123,7 +123,7 @@ class CardAccount(BaseAccount):
         return balance
 
     def get_spending(self, freq='M', start_date="1990-01-01", end_date="2099-01-01", by_category=True):
-        balance = self.get_transactions(start_date=start_date, end_date=end_date)
+        balance = self.get_transactions(start_date=start_date, end_date=end_date).copy()
         balance[freq] = balance['date'].dt.to_period(freq)
         if by_category:
             return balance.groupby(by=[freq, 'category'])['amount'].sum().rename('spending')

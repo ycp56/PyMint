@@ -66,7 +66,7 @@ def card_summary(card_accounts: List[CardAccount],
                  start_date=date.today()-timedelta(days=364),
                  end_date=date.today()):
     spending = pd.concat(
-        (acct.get_spending(start_date=start_date, end_date=end_date)
+        (acct.get_spending(start_date=start_date, end_date=end_date, by_category=True)
          for acct in card_accounts), axis=1
         ).sum(axis=1).rename('spending')
 
