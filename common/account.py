@@ -31,7 +31,7 @@ class BaseAccount:
     def to_dataframe(self) -> pd.DataFrame:
         return pd.DataFrame.from_records(
             txn.to_dict() for txn in self.transactions
-        )
+        ).sort_values(by='date')
 
     def _get_transactions(self,
                          start_date=datetime(1990, 1, 1),
@@ -60,7 +60,8 @@ class BankAccount(BaseAccount):
                     BankTransaction(
                         txn['date'],
                         txn['merchant'],
-                        txn['amount']
+                        txn['amount'],
+                        txn['balance']
                     )
                 )
             except:
@@ -79,6 +80,8 @@ class BankAccount(BaseAccount):
             balance = self._balance_sheet.query("(date>=@start_date) & (date<=@end_date) & (amount>0)")
         elif type == 'spending':
             balance = self._balance_sheet.query("(date>=@start_date) & (date<=@end_date) & (amount<0)")
+        elif type == 'balance':
+            balance = self._balance_sheet
         else:
             raise ValueError('Unknown type!')
         return balance
@@ -94,6 +97,12 @@ class BankAccount(BaseAccount):
     def get_cashflow(self, freq='M', start_date="1990-01-01", end_date="2099-01-01"):
         balance = self.get_transactions(type='all', start_date=start_date, end_date=end_date)
         return balance.groupby(by=balance['date'].dt.to_period(freq))['amount'].sum().rename('cashflow')
+
+    def get_balance(self, freq="M", start_date="1990-01-01", end_date="2099-01-01"):
+        balance = self.get_transactions(type='balance', start_date=start_date, end_date=end_date)
+        balance = balance.set_index('date').asof(pd.date_range(start=start_date, end=end_date, freq=freq))['balance']
+        balance.index = balance.index.to_period(freq)
+        return balance
 
 
 

@@ -7,10 +7,12 @@ class BankTransaction:
     date: str
     merchant: str
     amount: float
+    balance: float
 
     def __post_init__(self):
         try:
             self.amount = float(self.amount.replace(',', ''))
+            self.balance = float(self.balance.replace(',', ''))
         except ValueError:
             raise ValueError("Unexpected Format")
     
@@ -19,6 +21,7 @@ class BankTransaction:
             "date": self.date,
             "merchant": self.merchant,
             "amount": self.amount,
+            "balance": self.balance,
         }
 
 
