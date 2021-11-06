@@ -22,7 +22,8 @@ from common.utils import (
 from config import bank_config, brokerage_config, card_config
 data = {
     'bank_data':{
-        'summary': bank_summary(get_bank_account(bank_config))
+        'summary': bank_summary(get_bank_account(bank_config)),
+        'daily_summary': bank_summary(get_bank_account(bank_config), freq='D'),
         },
     'brokerage_data': {
         'summary': brokerage_summary(get_brokerage_account(brokerage_config)),

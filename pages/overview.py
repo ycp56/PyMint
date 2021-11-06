@@ -7,32 +7,102 @@ from utils import Header, make_dash_table
 
 def create_layout(data, app):
     # Page layouts
-    bank_data = data['bank_data']['summary']
+    bank_spending_data = data['bank_data']['summary']
+    bank_balance_data = data['bank_data']['daily_summary']
     brokerage_data = data['brokerage_data']['summary']
     portfolio_trend = data['brokerage_data']['trend']
     return html.Div(
         [
+
             html.Div([Header(app)]),
             # page 1
             html.Div(
                 [
-                    # Row 1: Bank Trend
+                    # Row 1:  Balance
                     html.Div(
                         [
                             html.Div(
                                 [
                                     html.H6(
-                                        "Trend",
+                                        "Bank Balance",
                                         className="subtitle padded",
                                     ),
                                     dcc.Graph(
                                         id="graph-1",
                                         figure={
                                             "data": [
+                                                go.Scatter(
+                                                    x=bank_balance_data['date'],
+                                                    y=bank_balance_data['balance'],
+                                                    line={"color": "#97151c"},
+                                                    mode="lines",
+                                                ),
+                                            ],
+                                            "layout": go.Layout(
+                                                autosize=False,
+                                                bargap=0.35,
+                                                font={
+                                                    "family": "Raleway", "size": 10},
+                                                height=200,
+                                                width=700,
+                                                hovermode="closest",
+                                                margin={
+                                                    "r": 50,
+                                                    "t": 20,
+                                                    "b": 20,
+                                                    "l": 50,
+                                                },
+                                                showlegend=False,
+                                                title="",
+                                                xaxis={
+                                                    "autorange": True,
+                                                    "range": [-0.5, 4.5],
+                                                    "showline": True,
+                                                    "title": "",
+                                                    "type": "category",
+                                                    "tickmode": "linear",
+                                                    "tick0": bank_balance_data['date'][10],
+                                                    "dtick": 60,
+                                                },
+                                                yaxis={
+                                                    "autorange": True,
+                                                    "range": [0, 22.9789473684],
+                                                    "showgrid": True,
+                                                    "showline": True,
+                                                    "title": "",
+                                                    "type": "linear",
+                                                    "zeroline": False,
+                                                },
+                                            ),
+                                        },
+                                        config={"displayModeBar": False},
+                                    ),
+                                ],
+                                className="twelve columns",
+                            ),
+                        ],
+                        className="row",
+                        style={"margin-bottom": "35px"},
+                    ),
+
+
+                    # Row 2: Spending 
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.H6(
+                                        "Spending",
+                                        className="subtitle padded",
+                                    ),
+                                    dcc.Graph(
+                                        id="graph-2",
+                                        figure={
+                                            "data": [
                                                 go.Bar(
-                                                    x=bank_data['date'],
+                                                    x=bank_spending_data['date'],
                                                     y=(-1.0) * \
-                                                    bank_data['spending'],
+                                                    bank_spending_data['spending'],
                                                     marker={
                                                         "color": "#97151c",
                                                         "line": {
@@ -43,8 +113,8 @@ def create_layout(data, app):
                                                     name="Spending",
                                                 ),
                                                 go.Bar(
-                                                    x=bank_data['date'],
-                                                    y=bank_data['income'],
+                                                    x=bank_spending_data['date'],
+                                                    y=bank_spending_data['income'],
                                                     marker={
                                                         "color": "#dddddd",
                                                         "line": {
@@ -55,8 +125,8 @@ def create_layout(data, app):
                                                     name="Income",
                                                 ),
                                                 go.Bar(
-                                                    x=bank_data['date'],
-                                                    y=bank_data['cashflow'],
+                                                    x=bank_spending_data['date'],
+                                                    y=bank_spending_data['cashflow'],
                                                     marker={
                                                         "color": "#856879",
                                                         "line": {
@@ -82,10 +152,10 @@ def create_layout(data, app):
                                                     "yanchor": "top",
                                                 },
                                                 margin={
-                                                    "r": 0,
+                                                    "r": 50,
                                                     "t": 20,
                                                     "b": 10,
-                                                    "l": 10,
+                                                    "l": 50,
                                                 },
                                                 showlegend=True,
                                                 title="",
@@ -122,9 +192,9 @@ def create_layout(data, app):
                         [
                             html.Div(
                                 [
-                                    html.H6("Performance", className="subtitle padded"),
+                                    html.H6("Investment", className="subtitle padded"),
                                     dcc.Graph(
-                                        id="graph-4",
+                                        id="graph-3",
                                         figure={
                                             "data": [
                                                 go.Scatter(
@@ -182,6 +252,7 @@ def create_layout(data, app):
                                                             },
                                                         ]
                                                     },
+                                                    "rangeslider":{'visible': True},
                                                     "showline": True,
                                                     "type": "date",
                                                     "zeroline": False,
@@ -200,7 +271,7 @@ def create_layout(data, app):
                                 className="twelve columns",
                             )
                         ],
-                        className="row ",
+                        className="row",
                     ),
  
 
@@ -209,11 +280,7 @@ def create_layout(data, app):
                         [
                             html.Div(
                                 [
-                                    html.H6(
-                                        "Investment Price & Performance",
-                                        className="subtitle padded",
-                                    ),
-                                    html.Table(
+                                   html.Table(
                                         make_dash_table(brokerage_data)),
                                 ],
                                 className=" columns",

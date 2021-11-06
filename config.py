@@ -7,6 +7,7 @@ bank_config = [
             "date": "Posting Date",
             "merchant": "Description",
             "amount": "Amount",
+            "balance": "Balance",
         },
         "datetime_format": "%m/%d/%Y",
         "filename_date_regex": r"\d{8}"
@@ -20,6 +21,7 @@ bank_config = [
             "date": "Posting Date",
             "merchant": "Description",
             "amount": "Amount",
+            "balance": "Balance",
         },
         "datetime_format": "%m/%d/%Y",
         "filename_date_regex": r"\d{8}"

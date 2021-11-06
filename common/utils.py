@@ -25,24 +25,32 @@ def get_bank_account(bank_configs):
 
 def bank_summary(bank_accounts: List[BankAccount],
                  start_date=date.today()-timedelta(days=364),
-                 end_date=date.today()):
+                 end_date=date.today(), freq='M'):
     spending = pd.concat(
-        (acct.get_spending(start_date=start_date, end_date=end_date)
+        (acct.get_spending(start_date=start_date, end_date=end_date, freq=freq)
          for acct in bank_accounts), axis=1
     ).sum(axis=1).rename('spending')
     income = pd.concat(
-        (acct.get_income(start_date=start_date, end_date=end_date)
+        (acct.get_income(start_date=start_date, end_date=end_date, freq=freq)
          for acct in bank_accounts), axis=1
     ).sum(axis=1).rename('income')
     cashflow = pd.concat(
-        (acct.get_cashflow(start_date=start_date, end_date=end_date)
+        (acct.get_cashflow(start_date=start_date, end_date=end_date, freq=freq)
          for acct in bank_accounts), axis=1
     ).sum(axis=1).rename('cashflow')
+    balance = pd.concat(
+        (acct.get_balance(start_date=start_date, end_date=end_date, freq=freq)
+         for acct in bank_accounts), axis=1
+    ).sum(axis=1).rename('balance')
 
+    date_format = {
+        'D': "%Y-%m-%d",
+        'M': "%Y-%m"
+    }
     # plotly dash doesn't support PeriodIndex type - convert it to datetime
-    bk_sum_res = pd.concat((spending, income, cashflow), axis=1)
-    bk_sum_res.index = bk_sum_res.index.strftime("%Y-%m")
-    bk_sum_res = bk_sum_res.reset_index()
+    bk_sum_res = pd.concat((spending, income, cashflow, balance), axis=1)
+    bk_sum_res.index = bk_sum_res.index.strftime(date_format[freq]).rename('date')
+    bk_sum_res = bk_sum_res.reset_index().fillna(0.)
     return bk_sum_res
 
 
@@ -64,7 +72,7 @@ def get_card_account(card_configs):
 
 def card_summary(card_accounts: List[CardAccount],
                  start_date=date.today()-timedelta(days=364),
-                 end_date=date.today()):
+                 end_date=date.today(), freq='M'):
     spending = pd.concat(
         (acct.get_spending(start_date=start_date, end_date=end_date, by_category=True)
          for acct in card_accounts), axis=1
