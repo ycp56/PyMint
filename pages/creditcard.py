@@ -10,9 +10,10 @@ from utils import Header, make_dash_table
 def create_layout(data, app):
     # Page layouts
     bank_data = data['bank_data']['summary']
-    card_data = -1.0*data['card_data']['summary'].round(decimals=2)
+    card_data = -1.0*data['card_data']['summary'].round(decimals=3)
     card_data_by_category = card_data.rename_axis(['date', 'category']).unstack(
         level=['category']).reset_index().fillna(0.).astype({'date': str})
+    card_data_by_month = card_data.groupby(by='M').sum().reset_index().rename(columns={'M':'date'}).astype({'date':str})
 
     return html.Div(
         [
@@ -26,7 +27,7 @@ def create_layout(data, app):
                             html.Div(
                                 [
                                     html.H6(
-                                        "Trend",
+                                        "Spending Trend",
                                         className="subtitle padded",
                                     ),
                                     dcc.Graph(
@@ -34,9 +35,8 @@ def create_layout(data, app):
                                         figure={
                                             "data": [
                                                 go.Bar(
-                                                    x=bank_data['date'],
-                                                    y=(-1.0) * \
-                                                    bank_data['spending'],
+                                                    x=card_data_by_month['date'],
+                                                    y=card_data_by_month['spending'],
                                                     marker={
                                                         "color": "#97151c",
                                                         "line": {
@@ -45,30 +45,6 @@ def create_layout(data, app):
                                                         },
                                                     },
                                                     name="Spending",
-                                                ),
-                                                go.Bar(
-                                                    x=bank_data['date'],
-                                                    y=bank_data['income'],
-                                                    marker={
-                                                        "color": "#dddddd",
-                                                        "line": {
-                                                            "color": "rgb(255, 255, 255)",
-                                                            "width": 2,
-                                                        },
-                                                    },
-                                                    name="Income",
-                                                ),
-                                                go.Bar(
-                                                    x=bank_data['date'],
-                                                    y=bank_data['cashflow'],
-                                                    marker={
-                                                        "color": "#856879",
-                                                        "line": {
-                                                            "color": "rgb(255, 255, 255)",
-                                                            "width": 2,
-                                                        },
-                                                    },
-                                                    name="Cash Flow",
                                                 ),
                                             ],
                                             "layout": go.Layout(
@@ -86,10 +62,10 @@ def create_layout(data, app):
                                                     "yanchor": "top",
                                                 },
                                                 margin={
-                                                    "r": 0,
+                                                    "r": 50,
                                                     "t": 20,
                                                     "b": 10,
-                                                    "l": 10,
+                                                    "l": 50,
                                                 },
                                                 showlegend=True,
                                                 title="",
@@ -135,7 +111,8 @@ def create_layout(data, app):
                                         figure=px.pie(
                                             card_data.groupby('category').sum().reset_index(),
                                             names='category',
-                                            values='spending'
+                                            values='spending',
+                                            color_discrete_sequence=px.colors.sequential.OrRd_r
                                             )
                                     ),
 

@@ -92,7 +92,7 @@ def create_layout(data, app):
                             html.Div(
                                 [
                                     html.H6(
-                                        "Spending",
+                                        "Cash Flow",
                                         className="subtitle padded",
                                     ),
                                     dcc.Graph(
