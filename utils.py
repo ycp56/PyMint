@@ -21,7 +21,7 @@ def get_header(app):
             html.Div(
                 [
                     html.Div(
-                        [html.H5("Overview")],
+                        [html.H5("My Finance")],
                         className="seven columns main-title",
                     ),
                ],
