@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import dash
+import webbrowser
+
+from threading import Timer
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
@@ -57,6 +60,9 @@ def display_page(pathname):
     else:
         return overview.create_layout(data, app)
 
+def open_browser(port=1234):
+	webbrowser.open_new("http://localhost:{}".format(port))
 
 if __name__ == "__main__":
-    app.run_server(debug=True, port=1234)
+    Timer(1, open_browser).start();
+    app.run_server(debug=False, port=1234)
